@@ -1,4 +1,5 @@
 from sqlalchemy import Column, String, DateTime, Enum
+from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 import uuid
 import enum
@@ -17,3 +18,5 @@ class User(Base):
     password = Column(String(255), nullable=False)
     role = Column(Enum(UserRole), default=UserRole.user, nullable=False)
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    
+    devices = relationship("DeviceTracking", back_populates="user")
