@@ -1,5 +1,6 @@
 from fastapi import Request, HTTPException
 from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
 
 def response_handler(status: bool, message: str = None, data: dict = None, status_code: int = None):
     return {
@@ -28,5 +29,16 @@ async def general_exception_handler(request: Request, exc: Exception):
             message="Internal server error",
             data=None,
             status_code=500
+        )
+    )
+
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=422,
+        content=response_handler(
+            status=False,
+            message="Validation error",
+            data=exc.errors(),
+            status_code=422
         )
     )
