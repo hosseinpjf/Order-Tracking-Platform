@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.schemas.user import RegisterUser, LoginUser
+from app.schemas.user import RegisterUser, LoginUser, ChangeRole
 from app.db.session import get_db
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.services.tokens import create_access_token, create_refresh_token
 from app.utils.hashing import hash_password, verify_password
 from app.middleware.exception_handler import response_handler
@@ -101,5 +101,40 @@ def get_users(payload = Depends(JWTBearer()), db: Session = Depends(get_db)):
             }
             for user in db_users
         ],
+        status_code=200
+    )
+
+@router.patch("/change-role")
+def change_role(data: ChangeRole, payload = Depends(JWTBearer()), db: Session = Depends(get_db)):
+    
+    if payload["role"] != UserRole.admin.value:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    if payload["sub"] == data.user_id:
+        raise HTTPException(status_code=400, detail="You cannot change your own role")
+    
+    db_user = db.query(User).filter(User.id == data.user_id).first()
+
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if db_user.role.value == data.role.value:
+        raise HTTPException(status_code=400, detail="User already has this role")
+
+    db_user.role = data.role
+
+    db.commit()
+    db.refresh(db_user)
+
+    return response_handler(
+        status=True,
+        message=f"User role updated to {data.role.value}",
+        data={
+            "id": db_user.id,
+            "name": db_user.name,
+            "phone": db_user.phone,
+            "role": db_user.role,
+            "created_at": db_user.created_at
+        },
         status_code=200
     )

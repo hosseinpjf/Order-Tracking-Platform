@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from app.models.user import UserRole
 
 class RegisterUser(BaseModel):
     name: str
@@ -8,3 +9,7 @@ class RegisterUser(BaseModel):
 class LoginUser(BaseModel):
     phone: str
     password: str
+
+class ChangeRole(BaseModel):
+    user_id: str
+    role: UserRole
