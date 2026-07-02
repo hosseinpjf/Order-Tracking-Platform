@@ -21,3 +21,9 @@ def create_refresh_token(data: dict):
         "exp": expire
     }
     return jwt.encode(to_encode, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
+
+def verify_token(token: str):
+    try:
+        return jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
+    except JWTError:
+        return None
