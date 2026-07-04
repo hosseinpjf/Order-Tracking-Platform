@@ -6,7 +6,7 @@ from .middleware.exception_handler import http_exception_handler, general_except
 
 # from .models.user import User
 from .routers.users import router as router_users
-from .routers.device_tracking import router as router_device_tracking
+from .routers.devices_tracking import router as router_device_tracking
 
 app = FastAPI()
 

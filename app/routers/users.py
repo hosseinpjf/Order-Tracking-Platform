@@ -1,13 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone
+import math
 from app.schemas.user import RegisterUser, LoginUser, ChangeRole, RefreshToken
 from app.schemas.device_tracking import DeviceData
 from app.db.session import get_db
 from app.models.user import User
 from app.models.device_tracking import DeviceTracking
 from app.services.tokens import create_access_token, create_refresh_token, verify_token
-from app.utils.hashing import hash_password, verify_password, hash_token, verify_hashed_token
+from app.utils.hashing import hash_password, verify_password, hash_token
 from app.middleware.exception_handler import response_handler
 from app.services.jwt_bearer import get_payload
 
@@ -29,14 +30,16 @@ def register_user(request: Request, user_data: RegisterUser, device_data: Device
         db.flush()
         db.refresh(new_user)
 
-        payload = {
+        access_token = create_access_token({
             "sub": new_user.id,
             "role": new_user.role.value,
             "access_version": 1,
             "device_id": device_data.device_id
-        }
-        access_token = create_access_token(payload)
-        refresh_token = create_refresh_token(payload)
+        })
+        refresh_token = create_refresh_token({
+            "sub": new_user.id,
+            "role": new_user.role.value
+        })
 
         # ----- Device Tracking -----
         user_agent = request.headers.get("User-Agent")
@@ -73,7 +76,6 @@ def register_user(request: Request, user_data: RegisterUser, device_data: Device
     except HTTPException as http_error:
         db.rollback()
         raise http_error
-
     except Exception:
         db.rollback()
         raise HTTPException(status_code=500, detail="Registration failed")
@@ -155,7 +157,6 @@ def login_user(request: Request, user_data: LoginUser, device_data: DeviceData, 
             },
             status_code=200
         )
-    
     except HTTPException as http_error:
         db.rollback()
         raise http_error
@@ -166,87 +167,61 @@ def login_user(request: Request, user_data: LoginUser, device_data: DeviceData, 
 
 @router.post("/refresh")
 def refresh_token(data: RefreshToken, db: Session = Depends(get_db)):
+    try:
+        payload = verify_token(data.refresh_token)
 
-    payload = verify_token(data.refresh_token)
+        if payload is None or payload["type"] != "refresh":
+            raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
 
-    if payload is None or payload["type"] != "refresh":
-        raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
+        db_device = db.query(DeviceTracking).filter(
+            DeviceTracking.user_id == payload["sub"],
+            DeviceTracking.refresh_token == hash_token(data.refresh_token)
+        ).first()
 
-    db_device = db.query(DeviceTracking).filter(
-        DeviceTracking.user_id == payload["sub"],
-        DeviceTracking.refresh_token == hash_token(data.refresh_token)
-    ).first()
+        if not db_device:
+            raise HTTPException(status_code=401, detail="Session not found. Please log in again")
+        
+        db_device.access_version += 1
+        db.commit()
 
-    if not db_device:
-        raise HTTPException(status_code=401, detail="Session not found. Please log in again")
-    
-    db_device.access_version += 1
-    db.commit()
+        new_access_token = create_access_token({
+            "sub": payload["sub"],
+            "role": payload["role"],
+            "access_version": db_device.access_version,
+            "device_id": db_device.device_id,
+        })
 
-    new_access_token = create_access_token({
-        "sub": payload["sub"],
-        "role": payload["role"],
-        "access_version": db_device.access_version,
-        "device_id": db_device.device_id,
-    })
-
-    return response_handler(
-        status=True,
-        message="Access token refreshed",
-        data={"access_token": new_access_token},
-        status_code=200
-    )
+        return response_handler(
+            status=True,
+            message="Access token refreshed",
+            data={"access_token": new_access_token},
+            status_code=200
+        )
+    except HTTPException as http_error:
+        db.rollback()
+        raise http_error
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Registration failed")
 
 
 @router.get("/me")
 def get_me(payload = Depends(get_payload), db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.id == payload["sub"]).first()
+    try:
+        db_user = db.query(User).filter(User.id == payload["sub"]).first()
 
-    if not db_user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    return response_handler(
-        status=True,
-        message="User found",
-        data={
-            "id": db_user.id,
-            "name": db_user.name,
-            "phone": db_user.phone,
-            "role": db_user.role,
-            "created_at": db_user.created_at,
-            "devices": [
-                {
-                    "id": device.id,
-                    "ip_address": device.ip_address,
-                    "user_agent": device.user_agent,
-                    "first_login_at": device.first_login_at,
-                    "last_logout_at": device.last_logout_at
-                }
-                for device in db_user.devices
-            ]
-        },
-        status_code=200
-    )
-
-
-@router.get("/users")
-def get_users(payload = Depends(get_payload), db: Session = Depends(get_db)):
-    
-    if payload["role"] != "admin":
-        raise HTTPException(status_code=403, detail="Access denied")
-
-    db_users = db.query(User).filter(User.id != payload["sub"]).all()
-
-    return response_handler(
-        status=True,
-        message="All users fetched",
-        data=[
-            {
-                "id": user.id,
-                "name": user.name,
-                "phone": user.phone,
-                "role": user.role,
-                "created_at": user.created_at,
+        if not db_user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        return response_handler(
+            status=True,
+            message="User found",
+            data={
+                "id": db_user.id,
+                "name": db_user.name,
+                "phone": db_user.phone,
+                "role": db_user.role,
+                "created_at": db_user.created_at,
                 "devices": [
                     {
                         "id": device.id,
@@ -255,101 +230,175 @@ def get_users(payload = Depends(get_payload), db: Session = Depends(get_db)):
                         "first_login_at": device.first_login_at,
                         "last_logout_at": device.last_logout_at
                     }
-                    for device in user.devices
+                    for device in db_user.devices
                 ]
-            }
-            for user in db_users
-        ],
-        status_code=200
-    )
+            },
+            status_code=200
+        )
+    except HTTPException as http_error:
+        db.rollback()
+        raise http_error
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Registration failed")
+
+
+@router.get("/users")
+def get_users(payload = Depends(get_payload), db: Session = Depends(get_db), page: int = 1, limit: int = 10):
+    try:
+        if payload["role"] != "admin":
+            raise HTTPException(status_code=403, detail="Access denied")
+
+        db_users = db.query(User).filter(User.id != payload["sub"]).offset((page - 1) * limit).limit(limit).all()
+
+        db_users_total = db.query(User).filter(User.id != payload["sub"]).count()
+
+        return response_handler(
+            status=True,
+            message="All users fetched",
+            data={
+                "users": [
+                    {
+                        "id": user.id,
+                        "name": user.name,
+                        "phone": user.phone,
+                        "role": user.role,
+                        "created_at": user.created_at,
+                        "devices": [
+                            {
+                                "id": device.id,
+                                "ip_address": device.ip_address,
+                                "user_agent": device.user_agent,
+                                "first_login_at": device.first_login_at,
+                                "last_logout_at": device.last_logout_at
+                            }
+                            for device in user.devices
+                        ]
+                    }
+                    for user in db_users
+                ],
+                "page": page,
+                "limit": limit,
+                "total": db_users_total,
+                "pages": math.ceil(db_users_total / limit)
+            },
+            status_code=200
+        )
+    except HTTPException as http_error:
+        db.rollback()
+        raise http_error
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Registration failed")
 
 
 @router.patch("/change-role")
 def change_role(data: ChangeRole, payload = Depends(get_payload), db: Session = Depends(get_db)):
-    
-    if payload["role"] != "admin":
-        raise HTTPException(status_code=403, detail="Access denied")
-    
-    if payload["sub"] == data.user_id:
-        raise HTTPException(status_code=400, detail="You cannot change your own role")
-    
-    db_user = db.query(User).filter(User.id == data.user_id).first()
+    try:
+        if payload["role"] != "admin":
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        if payload["sub"] == data.user_id:
+            raise HTTPException(status_code=400, detail="You cannot change your own role")
+        
+        db_user = db.query(User).filter(User.id == data.user_id).first()
 
-    if not db_user:
-        raise HTTPException(status_code=404, detail="User not found")
+        if not db_user:
+            raise HTTPException(status_code=404, detail="User not found")
 
-    if db_user.role.value == data.role.value:
-        raise HTTPException(status_code=400, detail="User already has this role")
+        if db_user.role.value == data.role.value:
+            raise HTTPException(status_code=400, detail="User already has this role")
 
-    db_user.role = data.role
+        db_user.role = data.role
 
-    db.commit()
-    db.refresh(db_user)
+        db.commit()
+        db.refresh(db_user)
 
-    db_devices = db.query(DeviceTracking).filter(DeviceTracking.user_id == db_user.id).all()
-    for device in db_devices:
-        device.refresh_token = None
-        device.access_version += 1
-        device.last_logout_at = datetime.now(timezone.utc)
+        db_devices = db.query(DeviceTracking).filter(DeviceTracking.user_id == db_user.id).all()
+        for device in db_devices:
+            device.refresh_token = None
+            device.access_version += 1
+            device.last_logout_at = datetime.now(timezone.utc)
 
-    db.commit()
+        db.commit()
 
-    return response_handler(
-        status=True,
-        message=f"User role updated to {data.role.value}",
-        data={
-            "id": db_user.id,
-            "name": db_user.name,
-            "phone": db_user.phone,
-            "role": db_user.role,
-            "created_at": db_user.created_at
-        },
-        status_code=200
-    )
+        return response_handler(
+            status=True,
+            message=f"User role updated to {data.role.value}",
+            data={
+                "id": db_user.id,
+                "name": db_user.name,
+                "phone": db_user.phone,
+                "role": db_user.role,
+                "created_at": db_user.created_at
+            },
+            status_code=200
+        )
+    except HTTPException as http_error:
+        db.rollback()
+        raise http_error
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Registration failed")
 
 
 @router.delete("/delete/{user_id}")
 def delete_user(user_id: str, payload = Depends(get_payload), db: Session = Depends(get_db)):
+    try:
+        db_user = db.query(User).filter(User.id == user_id).first()
 
-    db_user = db.query(User).filter(User.id == user_id).first()
+        if not db_user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        if payload["role"] != "admin" and payload["sub"] != db_user.id:
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        db.delete(db_user)
+        db.commit()
 
-    if payload["role"] != "admin" and payload["sub"] != db_user.id:
-        raise HTTPException(status_code=403, detail="Access denied")
-    
-    if not db_user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    db.delete(db_user)
-    db.commit()
-
-    return response_handler(
-        status=True,
-        message="User deleted successfully",
-        data=None,
-        status_code=200
-    )
+        return response_handler(
+            status=True,
+            message="User deleted successfully",
+            data=None,
+            status_code=200
+        )
+    except HTTPException as http_error:
+        db.rollback()
+        raise http_error
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Registration failed")
 
 
 @router.delete("/logout/{device_id}")
 def logout_user(device_id: str, payload = Depends(get_payload), db: Session = Depends(get_db)):
-    
-    db_device = db.query(DeviceTracking).filter(DeviceTracking.device_id == device_id).first()
+    try:
+        db_device = db.query(DeviceTracking).filter(
+            DeviceTracking.user_id == payload["sub"],
+            DeviceTracking.device_id == device_id
+        ).first()
 
-    if not db_device:
-        raise HTTPException(status_code=404, detail="Device not found")
-    
-    if payload["role"] != "admin" and payload["sub"] != db_device.user_id:
-        raise HTTPException(status_code=403, detail="Access denied")
+        if not db_device:
+            raise HTTPException(status_code=404, detail="Device not found")
+        
+        if payload["role"] != "admin" and payload["sub"] != db_device.user_id:
+            raise HTTPException(status_code=403, detail="Access denied")
 
-    db_device.refresh_token = None
-    db_device.access_version += 1
-    db_device.last_logout_at = datetime.now(timezone.utc)
-    db.commit()
+        db_device.refresh_token = None
+        db_device.access_version += 1
+        db_device.last_logout_at = datetime.now(timezone.utc)
+        db.commit()
 
-    return response_handler(
-        status=True,
-        message="Logged out successfully",
-        data=None,
-        status_code=200
-    )
+        return response_handler(
+            status=True,
+            message="Logged out successfully",
+            data=None,
+            status_code=200
+        )
+    except HTTPException as http_error:
+        db.rollback()
+        raise http_error
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Registration failed")
 

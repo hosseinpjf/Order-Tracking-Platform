@@ -10,7 +10,7 @@ class DeviceTracking(Base):
     id = Column(String, primary_key=True, index=True, default=lambda: uuid.uuid4().hex)
     user_id = Column(String, ForeignKey("users.id"), nullable=False)
     
-    device_id = Column(String(64), nullable=False, index=True, unique=True)
+    device_id = Column(String(64), nullable=False, index=True)
     user_agent = Column(String(2048), nullable=False)
     ip_address = Column(String, nullable=False)
 
