@@ -6,14 +6,16 @@ from .middleware.exception_handler import http_exception_handler, general_except
 
 # from .models.user import User
 from .routers.users import router as router_users
-from .routers.devices_tracking import router as router_device_tracking
+from .routers.devices_tracking import router as router_devices_tracking
+from .routers.products import router as router_products
 
 app = FastAPI()
 
 Base.metadata.create_all(bind=engine)
 
 app.include_router(router_users)
-app.include_router(router_device_tracking)
+app.include_router(router_devices_tracking)
+app.include_router(router_products)
 
 app.add_exception_handler(HTTPException, http_exception_handler)
 app.add_exception_handler(Exception, general_exception_handler)
