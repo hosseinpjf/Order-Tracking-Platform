@@ -21,7 +21,7 @@ def revoke_device(id: str, payload = Depends(get_payload), db: Session = Depends
     
     db_device.refresh_token = None
     db_device.access_version += 1
-    db_device.logout_at = datetime.now(timezone.utc)
+    db_device.last_logout_at = datetime.now(timezone.utc)
     db.commit()
     
     return response_handler(

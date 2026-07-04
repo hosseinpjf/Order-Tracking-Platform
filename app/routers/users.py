@@ -186,7 +186,7 @@ def get_me(payload = Depends(get_payload), db: Session = Depends(get_db)):
                     "ip_address": device.ip_address,
                     "user_agent": device.user_agent,
                     "first_login_at": device.first_login_at,
-                    "logout_at": device.logout_at
+                    "last_logout_at": device.last_logout_at
                 }
                 for device in db_user.devices
             ]
@@ -219,7 +219,7 @@ def get_users(payload = Depends(get_payload), db: Session = Depends(get_db)):
                         "ip_address": device.ip_address,
                         "user_agent": device.user_agent,
                         "first_login_at": device.first_login_at,
-                        "logout_at": device.logout_at
+                        "last_logout_at": device.last_logout_at
                     }
                     for device in user.devices
                 ]
@@ -251,6 +251,14 @@ def change_role(data: ChangeRole, payload = Depends(get_payload), db: Session = 
 
     db.commit()
     db.refresh(db_user)
+
+    db_devices = db.query(DeviceTracking).filter(DeviceTracking.user_id == db_user.id).all()
+    for device in db_devices:
+        device.refresh_token = None
+        device.access_version += 1
+        device.last_logout_at = datetime.now(timezone.utc)
+
+    db.commit()
 
     return response_handler(
         status=True,
@@ -301,7 +309,7 @@ def logout_user(device_id: str, payload = Depends(get_payload), db: Session = De
 
     db_device.refresh_token = None
     db_device.access_version += 1
-    db_device.logout_at = datetime.now(timezone.utc)
+    db_device.last_logout_at = datetime.now(timezone.utc)
     db.commit()
 
     return response_handler(

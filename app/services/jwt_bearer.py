@@ -12,7 +12,7 @@ class JWTBearer(HTTPBearer):
 
         payload = verify_token(token)
         if payload is None:
-            raise HTTPException(status_code=403, detail="Invalid or expired token")
+            raise HTTPException(status_code=401, detail="Invalid or expired access token")
         
         return payload
 
@@ -24,6 +24,6 @@ def get_payload(payload = Depends(JWTBearer()), db: Session = Depends(get_db)):
         ).first()
 
         if not db_device or db_device.access_version != payload["access_version"]:
-            raise HTTPException(status_code=403, detail="Invalid or expired token")
+            raise HTTPException(status_code=401, detail="Session not found. Please log in again")
         
         return payload

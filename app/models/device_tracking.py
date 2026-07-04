@@ -19,6 +19,6 @@ class DeviceTracking(Base):
 
     first_login_at = Column(DateTime(timezone=True), nullable=False, default=datetime.now(timezone.utc))
     last_login_at = Column(DateTime(timezone=True), nullable=False)
-    logout_at = Column(DateTime(timezone=True), nullable=True)
+    last_logout_at = Column(DateTime(timezone=True), nullable=True)
 
     user = relationship("User", back_populates="devices")
