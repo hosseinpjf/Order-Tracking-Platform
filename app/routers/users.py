@@ -250,8 +250,10 @@ def get_users(payload = Depends(get_payload), db: Session = Depends(get_db), pag
             raise HTTPException(status_code=403, detail="Access denied")
 
         db_users = db.query(User).filter(User.id != payload["sub"]).offset((page - 1) * limit).limit(limit).all()
-
         db_users_total = db.query(User).filter(User.id != payload["sub"]).count()
+
+        if not db_users or not db_users_total:
+            raise HTTPException(status_code=404, detail="Users not found")
 
         return response_handler(
             status=True,
