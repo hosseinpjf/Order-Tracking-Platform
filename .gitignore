@@ -1,47 +1,75 @@
-# Python
+############################################
+# 🐍 Python
+############################################
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 
-# Virtual environment
+############################################
+# 🔒 Virtual Environments
+############################################
 venv/
 env/
 .venv/
 
-# Environment variables
+############################################
+# 🔐 Environment Variables
+############################################
 .env
 .env.*
 
-# IDE / Editor
+############################################
+# 🧰 IDE / Editor Config
+############################################
 .vscode/
 .idea/
 
-# OS files
+############################################
+# 🖥 OS Files
+############################################
 .DS_Store
 Thumbs.db
 
-# Byte-compiled / cache
+############################################
+# 🧹 Byte-compiled / Cache / Logs
+############################################
 *.log
 *.sqlite3
-
-# FastAPI / Uvicorn
 *.pid
 
-# Alembic migrations cache
+############################################
+# 🛠 Alembic Migrations Cache
+############################################
 alembic/__pycache__/
 alembic/*.pyc
 
-# Local data
+############################################
+# 📦 Local Data / Uploaded Media
+############################################
 instance/
 uploads/
 media/
 static/
 
-# MyPy / PyTest / Coverage
+############################################
+# 🧪 MyPy / PyTest / Coverage
+############################################
 .mypy_cache/
 .pytest_cache/
 .coverage
 htmlcov/
 
+############################################
+# 📄 Project-specific files
+############################################
 description.txt
+database.db
+
+############################################
+# 🔧 FastAPI / Uvicorn / Temp
+############################################
+*.sock
+.cache/
+dist/
+build/
