@@ -4,7 +4,7 @@ from typing import List
 from app.models.product import ProductTags
 
 class ImageSchema(BaseModel):
-    url: str = Field(..., pattern=r"^/uploads/[A-Za-z0-9_\-./]+\.(jpg|jpeg|png|webp|gif|svg)$")
+    url: str = Field(..., pattern=r"^/uploads/[A-Za-z0-9_\-./]+\.(jpg|jpeg|png|webp)$")
     position: str
 
 class CreateProduct(BaseModel):
