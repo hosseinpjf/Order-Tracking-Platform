@@ -8,6 +8,7 @@ from app.services.jwt_bearer import get_payload
 from app.schemas.order import CreateOrder, OutOrder
 from app.models.order import Order, OrderStatus, OrderType, OrderSort
 from app.models.order_item import OrderItem
+from app.models.order_status_history import OrderStatusHistory, StatusChangedBy
 from app.models.product import Product
 from app.middleware.exception_handler import response_handler
 from app.utils.calculations import calculate_order_totals, calculate_discounted_price
@@ -50,6 +51,15 @@ def create_order(data: CreateOrder, payload = Depends(get_payload), db: Session 
                 price_at_time = price_at_time
             )
             db.add(new_order_item)
+
+        # OrderStatusHistory
+        new_order_status_history = OrderStatusHistory(
+            order_id = new_order.id,
+            status = OrderStatus.pending,
+            changed_by = StatusChangedBy.user
+        )
+        db.add(new_order_status_history)
+
         db.commit()
 
         return response_handler(
