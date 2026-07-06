@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 import math
-import json
 from app.db.session import get_db
 from app.services.jwt_bearer import get_payload
 from app.schemas.product import CreateProduct, UpdateProduct, OutProduct
@@ -52,10 +51,10 @@ def get_products(
         limit: int = Query(20, ge=1, le=100),
         q: str | None = Query(None, min_length=1, max_length=100),
         category_id: str | None = Query(None, min_length=32, max_length=32),
-        tag: ProductTags | None = None,
-        discount: bool | None = None,
-        available: bool | None = None,
-        sort: ProductSort | None = None,
+        tag: ProductTags | None = Query(None),
+        discount: bool | None = Query(None),
+        available: bool | None = Query(None),
+        sort: ProductSort | None = Query(None)
     ):
     try:
         db_products = []
@@ -86,8 +85,8 @@ def get_products(
         elif sort == ProductSort.prepare_time_asc:
             query = query.order_by(Product.prepare_time.asc())
 
-        db_products = query.offset((page - 1) * limit).limit(limit).all()
         db_products_total = query.count()
+        db_products = query.offset((page - 1) * limit).limit(limit).all()
         
         return response_handler(
             status=True,

@@ -7,42 +7,28 @@ import enum
 from app.db.base import Base
 
 class ProductTags(enum.Enum):
-    #  محصول تازه اضافه شده یا جدید در فروشگاه
-    new = "new" 
-    #  محصول پرطرفدار و پرفروش
-    popular = "popular" 
-    #  محصول دارای تخفیف فعال
-    discounted = "discounted" 
-    #  محصول محدود یا موجودی کم
-    limited = "limited" 
-    #  محصول مناسب برای گیاه‌خواران
-    vegan = "vegan" 
-    #  محصول بدون گلوتن
-    gluten_free = "gluten_free" 
-    #  محصول تند
-    spicy = "spicy" 
-    #  محصول داغ یا تازه آماده شده
-    hot = "hot" 
-    #  محصولی که بیشترین فروش را داشته
-    best_seller = "best_seller" 
-    #  محصول فصلی (مثلاً مخصوص تابستان یا زمستان)
-    seasonal = "seasonal" 
-    #  محصول پیشنهادی یا ویژه توسط ادمین
-    recommended = "recommended" 
-    #  محصول ویژهٔ سرآشپز یا اختصاصی
-    chef_special = "chef_special" 
-    #  محصول ارگانیک و طبیعی
-    organic = "organic" 
-    #  محصول لوکس یا باکیفیت بالا
-    premium = "premium" 
+    new = "new"                     #  محصول تازه اضافه شده یا جدید در فروشگاه
+    popular = "popular"             #  محصول پرطرفدار و پرفروش
+    discounted = "discounted"       #  محصول دارای تخفیف فعال
+    limited = "limited"             #  محصول محدود یا موجودی کم
+    vegan = "vegan"                 #  محصول مناسب برای گیاه‌خواران
+    gluten_free = "gluten_free"     #  محصول بدون گلوتن
+    spicy = "spicy"                 #  محصول تند
+    hot = "hot"                     # محصول داغ یا تازه آماده شده
+    best_seller = "best_seller"     #  محصولی که بیشترین فروش را داشته
+    seasonal = "seasonal"           #  محصول فصلی (مثلاً مخصوص تابستان یا زمستان)
+    recommended = "recommended"     #  محصول پیشنهادی یا ویژه توسط ادمین
+    chef_special = "chef_special"   #  محصول ویژهٔ سرآشپز یا اختصاصی
+    organic = "organic"             #  محصول ارگانیک و طبیعی
+    premium = "premium"             #  محصول لوکس یا باکیفیت بالا
 
 class ProductSort(enum.Enum):
-    newest = "newest"
-    popular = "popular"
-    price_desc = "price_desc"
-    price_asc = "price_asc"
-    discount_desc = "discount_desc"
-    prepare_time_asc = "prepare_time_asc"
+    newest = "newest"                       # جدید ترین
+    popular = "popular"                     # معروف ترین
+    price_desc = "price_desc"               # گران ترین
+    price_asc = "price_asc"                 # ارزان ترین
+    discount_desc = "discount_desc"         # بیشترین تخفیف
+    prepare_time_asc = "prepare_time_asc"   # زمان آماده سازی
 
 class Product(Base):
     __tablename__ = "products"
