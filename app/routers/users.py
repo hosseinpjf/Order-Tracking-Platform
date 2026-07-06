@@ -232,7 +232,7 @@ def get_users(
         db: Session = Depends(get_db), 
         page: int = Query(1, ge=1), 
         limit: int = Query(10, ge=1, le=100),
-        role: UserRole | None = None,
+        role: UserRole | None = Query(None),
         q: str | None = Query(None, min_length=1, max_length=100),
     ):
     try:
@@ -240,15 +240,15 @@ def get_users(
             raise HTTPException(status_code=403, detail="Access denied")
         
         db_users = []
-        query = db.query(User)
+        query = db.query(User).order_by(User.created_at.desc())
 
         if role:
             query = query.filter(User.role == role)
         if q:
             query = query = query.filter(or_(User.name.ilike(f"%{q}%"), User.phone.ilike(f"%{q}%")))
 
-        db_users = query.offset((page - 1) * limit).limit(limit).all()
         db_users_total = query.count()
+        db_users = query.offset((page - 1) * limit).limit(limit).all()
 
         return response_handler(
             status=True,
