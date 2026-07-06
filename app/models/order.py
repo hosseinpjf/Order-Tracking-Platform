@@ -6,12 +6,10 @@ import enum
 from app.db.base import Base
 
 class OrderStatus(enum.Enum):
-    pending = "pending"        # سفارش ثبت شده
-    confirmed = "confirmed"    # سفارش تأیید شده
+    pending = "pending"        # سفارش ثبت شده اما هزینه اش پرداخت نشده
+    confirmed = "confirmed"    # سفارش تأیید شده و هزینه پرداخت شده
     preparing = "preparing"    # در حال آماده‌سازی
-    ready = "ready"            # آماده برای ارسال
     delivering = "delivering"  # در حال ارسال
-    delivered = "delivered"    # تحویل داده شده
     completed = "completed"    # نهایی شده
     canceled = "canceled"      # لغو شده
 
@@ -19,6 +17,14 @@ class OrderType(enum.Enum):
     takeaway = "takeaway"      # کاربر سفارش می‌دهد و خودش می‌آید می‌برد
     delivery = "delivery"      # سفارش باید ارسال شود
     dine_in = "dine_in"        # سفارش برای مصرف داخل مجموعه است
+
+class OrderSort(enum.Enum):
+    price_desc = "price_desc"                 # گران ترین
+    price_asc = "price_asc"                   # ارزان ترین
+    items_desc = "items_desc"                 # دارای بیشترین آیتم
+    items_asc = "items_asc"                   # دارای کمترین آیتم
+    prepare_time_desc = "prepare_time_desc"   # سریع ترین آماده سازی
+    prepare_time_asc = "prepare_time_asc"     # کند ترین آماده سازی
 
 class Order(Base):
     __tablename__ = "orders"

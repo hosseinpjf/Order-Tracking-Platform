@@ -1,9 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import func
+import math
+from datetime import datetime
 from app.db.session import get_db
 from app.services.jwt_bearer import get_payload
 from app.schemas.order import CreateOrder, OutOrder
-from app.models.order import Order, OrderStatus
+from app.models.order import Order, OrderStatus, OrderType, OrderSort
 from app.models.order_item import OrderItem
 from app.models.product import Product
 from app.middleware.exception_handler import response_handler
@@ -61,3 +64,74 @@ def create_order(data: CreateOrder, payload = Depends(get_payload), db: Session 
     except Exception:
         db.rollback()
         raise HTTPException(status_code=500, detail="Order create failed")
+
+@router.get("/")
+def get_orders(
+        payload = Depends(get_payload), 
+        db: Session = Depends(get_db),
+        page: int = Query(1, ge=1), 
+        limit: int = Query(20, ge=1, le=100),
+        status: OrderStatus | None = Query(None),
+        order_type: OrderType | None = Query(None),
+        user_id: str | None = Query(None),
+        sort: OrderSort | None = Query(None),
+        from_date: datetime | None = Query(None),
+        to_date: datetime | None = Query(None)
+    ):
+    try:
+        db_orders = []
+        query = db.query(Order).order_by(Order.created_at.desc())
+
+        if payload["role"] != "admin":
+            query = query.filter(Order.user_id == payload["sub"])
+
+        if payload["role"] == "admin" and user_id:
+            query = query.filter(Order.user_id == user_id)
+
+        if status:
+            query = query.filter(Order.status == status)
+        if order_type:
+            query = query.filter(Order.order_type == order_type)
+
+        if from_date:
+            query = query.filter(Order.created_at >= from_date)
+        if to_date:
+            query = query.filter(Order.created_at <= to_date)
+
+        db_orders_total = query.count()
+
+        if sort == OrderSort.price_desc:
+            query = query.order_by(Order.final_total_price.desc(), Order.created_at.desc())
+        if sort == OrderSort.price_asc:
+            query = query.order_by(Order.final_total_price.asc(), Order.created_at.desc())
+        if sort == OrderSort.items_desc:
+            query = query.outerjoin(OrderItem).group_by(Order.id).order_by(func.count(OrderItem.id).desc(), Order.created_at.desc())
+        if sort == OrderSort.items_asc:
+            query = query.outerjoin(OrderItem).group_by(Order.id).order_by(func.count(OrderItem.id).asc(), Order.created_at.desc())
+        if sort == OrderSort.prepare_time_desc:
+            query = query.order_by(Order.total_prepare_time.desc(), Order.created_at.desc())
+        if sort == OrderSort.prepare_time_asc:
+            query = query.order_by(Order.total_prepare_time.asc(), Order.created_at.desc())
+
+        db_orders = query.offset((page - 1) * limit).limit(limit).all()
+
+        return response_handler(
+            status=True,
+            message="All orders fetched",
+            data={
+                "orders": [
+                    OutOrder.model_validate(order).model_dump()
+                    for order in db_orders
+                ],
+                "page": page,
+                "limit": limit,
+                "total": db_orders_total,
+                "pages": math.ceil(db_orders_total / limit)
+            },
+            status_code=200
+        )
+
+    except HTTPException as http_error:
+        raise http_error
+    except Exception:
+        raise HTTPException(status_code=500, detail="Order get failed")
