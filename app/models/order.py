@@ -29,12 +29,13 @@ class Order(Base):
     status = Column(Enum(OrderStatus), nullable=False, default=OrderStatus.pending)
     order_type = Column(Enum(OrderType), nullable=False)
 
-    total_price = Column(Integer, nullable=False)
+    original_total_price = Column(Integer, nullable=False)
+    final_total_price = Column(Integer, nullable=False)
     total_prepare_time = Column(Integer, nullable=False)
     
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
     
 
-    items = relationship("OrderItems", back_populates="order", cascade="all, delete-orphan")
-    status_history = relationship("OrderStatusHistory", back_populates="order", cascade="all, delete-orphan")
+    # items = relationship("OrderItems", back_populates="order", cascade="all, delete-orphan")
+    # status_history = relationship("OrderStatusHistory", back_populates="order", cascade="all, delete-orphan")
