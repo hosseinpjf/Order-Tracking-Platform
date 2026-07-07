@@ -35,9 +35,11 @@ class Order(Base):
 
     id = Column(String, primary_key=True, index=True, default=lambda: uuid.uuid4().hex)
     user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    user_name = Column(String, nullable=False)
 
     status = Column(Enum(OrderStatus), nullable=False, default=OrderStatus.pending)
     order_type = Column(Enum(OrderType), nullable=False)
+    items_count = Column(Integer, nullable=False, default=0)
 
     original_total_price = Column(Integer, nullable=False)
     final_total_price = Column(Integer, nullable=False)

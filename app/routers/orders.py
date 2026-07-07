@@ -10,6 +10,7 @@ from app.models.order import Order, OrderStatus, OrderType, OrderSort
 from app.models.order_item import OrderItem
 from app.models.order_status_history import OrderStatusHistory
 from app.models.product import Product
+from app.models.user import User
 from app.middleware.exception_handler import response_handler
 from app.utils.calculations import calculate_order_totals, calculate_discounted_price
 
@@ -26,12 +27,16 @@ def create_order(data: CreateOrder, payload = Depends(get_payload), db: Session 
         product_ids = [item.product_id for item in data.items]
         db_products = db.query(Product).filter(Product.id.in_(product_ids)).all()
         values = calculate_order_totals(data, product_ids, db_products)
+
+        db_user = db.query(User).filter(User.id == payload["sub"]).first()
         
         # Order
         new_order = Order(
             user_id = payload["sub"],
+            user_name = db_user.name,
             order_type = data.order_type,
             status = OrderStatus.pending,
+            items_count = len(data.items),
             original_total_price = values["original_total_price"],
             final_total_price = values["final_total_price"],
             total_prepare_time = values["total_prepare_time"]
