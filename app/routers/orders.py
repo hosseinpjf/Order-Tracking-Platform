@@ -2,18 +2,20 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 import math
-from datetime import datetime
+from datetime import datetime, timezone
 from app.db.session import get_db
 from app.services.jwt_bearer import get_payload
-from app.schemas.order import CreateOrder, OutOrder
+from app.schemas.order import CreateOrder, OutOrder, UpdateStatus
 from app.models.order import Order, OrderStatus, OrderType, OrderSort
 from app.models.order_item import OrderItem
-from app.models.order_status_history import OrderStatusHistory, StatusChangedBy
+from app.models.order_status_history import OrderStatusHistory
 from app.models.product import Product
 from app.middleware.exception_handler import response_handler
 from app.utils.calculations import calculate_order_totals, calculate_discounted_price
 
+
 router = APIRouter(prefix="/order", tags=["Order"])
+
 
 @router.post("/")
 def create_order(data: CreateOrder, payload = Depends(get_payload), db: Session = Depends(get_db)):
@@ -56,7 +58,6 @@ def create_order(data: CreateOrder, payload = Depends(get_payload), db: Session 
         new_order_status_history = OrderStatusHistory(
             order_id = new_order.id,
             status = OrderStatus.pending,
-            changed_by = StatusChangedBy.user
         )
         db.add(new_order_status_history)
 
@@ -74,6 +75,7 @@ def create_order(data: CreateOrder, payload = Depends(get_payload), db: Session 
     except Exception:
         db.rollback()
         raise HTTPException(status_code=500, detail="Order create failed")
+
 
 @router.get("/")
 def get_orders(
@@ -145,3 +147,69 @@ def get_orders(
         raise http_error
     except Exception:
         raise HTTPException(status_code=500, detail="Order get failed")
+
+
+@router.patch("/{order_id}/status")
+def update_status(
+        order_id: str, 
+        data: UpdateStatus, 
+        payload = Depends(get_payload), 
+        db: Session = Depends(get_db)
+    ):
+    try:
+        db_order = db.query(Order).filter(Order.id == order_id).first()
+        if not db_order:
+            raise HTTPException(status_code=404, detail="Order not found")
+        
+        db_order_status_history = (
+            db.query(OrderStatusHistory)
+            .filter(OrderStatusHistory.order_id == order_id)
+            .order_by(OrderStatusHistory.start_at.desc())
+            .first()
+        )
+        if not db_order_status_history:
+            raise HTTPException(status_code=404, detail="Order status history not found")
+        
+        if db_order_status_history.status == OrderStatus.completed or db_order_status_history.status == OrderStatus.canceled:
+            raise HTTPException(status_code=404, detail="The order is in the final status")
+            
+        db_order.status = data.status
+
+        db_order_status_history.changed_by = data.changed_by
+        db_order_status_history.end_at = datetime.now(timezone.utc)
+        db_order_status_history.duration_seconds = int(
+            (db_order_status_history.end_at - db_order_status_history.start_at).total_seconds()
+        )
+
+        if data.status == OrderStatus.completed or data.status == OrderStatus.canceled:
+            new_order_status_history = OrderStatusHistory(
+                order_id = order_id,
+                status = data.status,
+                changed_by = data.changed_by,
+                duration_seconds = 0,
+                end_at = datetime.now(timezone.utc)
+            )
+            db.add(new_order_status_history)
+        else:
+            new_order_status_history = OrderStatusHistory(
+                order_id = order_id,
+                status = data.status,
+            )
+            db.add(new_order_status_history)
+        
+        db.commit()
+        db.refresh(db_order)
+
+        return response_handler(
+            status=True,
+            message="Status updated",
+            data=OutOrder.model_validate(db_order).model_dump(),
+            status_code=200
+        )
+    except HTTPException as http_error:
+        db.rollback()
+        raise http_error
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Order update status failed")
+
