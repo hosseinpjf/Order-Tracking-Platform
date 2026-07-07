@@ -45,8 +45,8 @@ class Order(Base):
     final_total_price = Column(Integer, nullable=False)
     total_prepare_time = Column(Integer, nullable=False)
     
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
-    updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
 
     items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")

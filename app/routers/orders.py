@@ -183,7 +183,7 @@ def update_status(
         payload = Depends(get_payload), 
         db: Session = Depends(get_db)
     ):
-    try:
+    # try:
         db_order = db.query(Order).filter(Order.id == order_id).first()
         if not db_order:
             raise HTTPException(status_code=404, detail="Order not found")
@@ -202,10 +202,15 @@ def update_status(
             
         db_order.status = data.status
 
+        end_at_status = datetime.now(timezone.utc)
+
+        if db_order_status_history.start_at.tzinfo is None:
+            db_order_status_history.start_at = db_order_status_history.start_at.replace(tzinfo=timezone.utc)
+
         db_order_status_history.changed_by = data.changed_by
-        db_order_status_history.end_at = datetime.now(timezone.utc)
+        db_order_status_history.end_at = end_at_status
         db_order_status_history.duration_seconds = int(
-            (db_order_status_history.end_at - db_order_status_history.start_at).total_seconds()
+            (end_at_status - db_order_status_history.start_at).total_seconds()
         )
 
         if data.status == OrderStatus.completed or data.status == OrderStatus.canceled:
@@ -233,10 +238,10 @@ def update_status(
             data=OutOrder.model_validate(db_order).model_dump(),
             status_code=200
         )
-    except HTTPException as http_error:
-        db.rollback()
-        raise http_error
-    except Exception:
-        db.rollback()
-        raise HTTPException(status_code=500, detail="Order update status failed")
+    # except HTTPException as http_error:
+    #     db.rollback()
+    #     raise http_error
+    # except Exception:
+    #     db.rollback()
+    #     raise HTTPException(status_code=500, detail="Order update status failed")
 

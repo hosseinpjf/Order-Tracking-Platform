@@ -17,7 +17,7 @@ class DeviceTracking(Base):
     refresh_token = Column(String, unique=True)
     access_version = Column(Integer, default=1)
 
-    first_login_at = Column(DateTime(timezone=True), nullable=False, default=datetime.now(timezone.utc))
+    first_login_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
     last_login_at = Column(DateTime(timezone=True), nullable=False)
     last_logout_at = Column(DateTime(timezone=True), nullable=True)
 

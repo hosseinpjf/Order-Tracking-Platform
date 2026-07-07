@@ -17,6 +17,6 @@ class User(Base):
     phone = Column(String(11), nullable=False, unique=True)
     password = Column(String(255), nullable=False)
     role = Column(Enum(UserRole), default=UserRole.user, nullable=False)
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     
     devices = relationship("DeviceTracking", back_populates="user", cascade="all, delete-orphan")

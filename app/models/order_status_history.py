@@ -23,8 +23,8 @@ class OrderStatusHistory(Base):
     duration_seconds = Column(Integer, default=0)
     changed_by = Column(Enum(StatusChangedBy))
 
-    start_at = Column(DateTime, default=datetime.now(timezone.utc))
-    end_at = Column(DateTime)
+    start_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    end_at = Column(DateTime(timezone=True))
 
 
     order = relationship("Order", back_populates="status_history")

@@ -10,7 +10,7 @@ class OrderItemInput(BaseModel):
 
 class CreateOrder(BaseModel):
     order_type: OrderType
-    items: List[OrderItemInput]
+    items: List[OrderItemInput] = Field(default_factory=list)
 
 class UpdateStatus(BaseModel):
     changed_by: StatusChangedBy
