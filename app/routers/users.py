@@ -290,7 +290,8 @@ def change_role(data: ChangeRole, payload = Depends(get_payload), db: Session = 
 
         db_user.role = data.role
 
-        db.commit()
+        # db.commit()
+        db.flush()
         db.refresh(db_user)
 
         db_devices = db.query(DeviceTracking).filter(DeviceTracking.user_id == db_user.id).all()

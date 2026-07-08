@@ -42,7 +42,7 @@ def create_order(data: CreateOrder, payload = Depends(get_payload), db: Session 
             total_prepare_time = values["total_prepare_time"]
         )
         db.add(new_order)
-        db.commit()
+        db.flush()
         db.refresh(new_order)
 
         # OrderItems
