@@ -7,12 +7,13 @@ from app.db.base import Base
 
 
 class ReservationStatus(enum.Enum):
-    pending = "pending"       # رزرو ثبت شده ولی هنوز تایید نشده
-    confirmed = "confirmed"   # رزرو تایید شده
-    completed = "completed"   # میز آزاد شده و تحویل کاربر داده شده
-    cancelled = "cancelled"   # کاربر یا ادمین رزرو را لغو کرده
-    rejected = "rejected"     # ادمین رزرو را رد کرده
-
+    pending = "pending"         # درخواست ثبت شده و منتظر تایید
+    confirmed = "confirmed"     # رزرو تایید شده
+    seated = "seated"           # مشتری روی میز نشسته و استفاده از میز شروع شده
+    completed = "completed"     # استفاده از میز به پایان رسیده و رزرو با موفقیت تمام شده
+    expired = "expired"         # مشتری تا پایان زمان مجاز مراجعه نکرده و رزرو منقضی شده
+    cancelled = "cancelled"     # توسط کاربر یا ادمین لغو شده
+    rejected = "rejected"       # توسط ادمین رد شده
 
 class TableReservation(Base):
     __tablename__ = "table_reservations"

@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings
+from datetime import timedelta, time
 
 class Settings(BaseSettings):
     DATABASE_URL: str
@@ -7,10 +8,15 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int
     REFRESH_TOKEN_EXPIRE_DAYS: int
 
+    OPEN_TIME: time = time(9, 0)
+    CLOSE_TIME: time = time(23, 0)
+
     ALLOWED_FOLDERS: list = ["products", "tables", "categories"]
     ALLOWED_EXTENSIONS: list = ["jpg", "jpeg", "png", "webp"]
     ALLOWED_CONTENT_TYPES: list = ["image/jpg", "image/jpeg", "image/png", "image/webp"]
     MAX_FILE_SIZE: int = 5 * 1024 * 1024  # 5MB
+
+    RESERVATION_DURATION: timedelta = timedelta(minutes=30)
 
     class Config:
         env_file = ".env"

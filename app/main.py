@@ -13,6 +13,7 @@ from .routers.uploads import router as router_uploads
 from .routers.categories import router as router_categories
 from .routers.orders import router as router_orders
 from .routers.tables import router as router_tables
+from .routers.table_reservations import router as router_table_reservations
 
 
 app = FastAPI()
@@ -28,6 +29,7 @@ app.include_router(router_uploads)
 app.include_router(router_categories)
 app.include_router(router_orders)
 app.include_router(router_tables)
+app.include_router(router_table_reservations)
 
 app.add_exception_handler(HTTPException, http_exception_handler)
 app.add_exception_handler(Exception, general_exception_handler)
