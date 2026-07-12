@@ -40,3 +40,5 @@ class Table(Base):
     location = Column(String, nullable=False)
     status = Column(Enum(TableStatus), default=TableStatus.free)
     tags = Column(JSON, default=list)
+
+    reservations = relationship("TableReservation", back_populates="table", cascade="all, delete-orphan")

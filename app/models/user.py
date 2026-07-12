@@ -22,4 +22,4 @@ class User(Base):
     
     devices = relationship("DeviceTracking", back_populates="user", cascade="all, delete-orphan")
     orders = relationship("Order", back_populates="user")
-    
+    reservations = relationship("TableReservation", back_populates="user")
