@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int
     REFRESH_TOKEN_EXPIRE_DAYS: int
 
-    OPEN_TIME: time = time(9, 0)
+    OPEN_TIME: time = time(7, 0)
     CLOSE_TIME: time = time(23, 0)
 
     ALLOWED_FOLDERS: list = ["products", "tables", "categories"]
@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     ALLOWED_CONTENT_TYPES: list = ["image/jpg", "image/jpeg", "image/png", "image/webp"]
     MAX_FILE_SIZE: int = 5 * 1024 * 1024  # 5MB
 
-    RESERVATION_DURATION: timedelta = timedelta(minutes=30)
+    RESERVATION_DURATION: timedelta = timedelta(minutes=5)
 
     JOB_INTERVAL_SECONDS: int = 60
 

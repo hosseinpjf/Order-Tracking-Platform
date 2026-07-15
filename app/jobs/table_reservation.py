@@ -6,6 +6,7 @@ from app.models.table_reservation import TableReservation, ReservationStatus
 def auto_update_reservations(db: Session):
     try:
         now = datetime.now(timezone.utc)
+        print(now)
 
         updated = False
 

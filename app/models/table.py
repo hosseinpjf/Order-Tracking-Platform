@@ -1,7 +1,5 @@
-from sqlalchemy import Column, String, DateTime, Enum, Integer, Boolean, ForeignKey, JSON
+from sqlalchemy import Column, String, Enum, Integer, JSON
 from sqlalchemy.orm import relationship
-from datetime import datetime, timezone
-from sqlalchemy.ext.mutable import MutableList
 import uuid
 import enum
 from app.db.base import Base
@@ -41,4 +39,4 @@ class Table(Base):
     status = Column(Enum(TableStatus), default=TableStatus.free)
     tags = Column(JSON, default=list)
 
-    reservations = relationship("TableReservation", back_populates="table", cascade="all, delete-orphan")
+    reservations = relationship("TableReservation", back_populates="table")

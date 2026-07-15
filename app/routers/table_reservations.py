@@ -187,7 +187,7 @@ def update_status(reservation_id: str, data: UpdateStatus, payload = Depends(get
         if data.status not in allowed:
             raise HTTPException(status_code=400, detail="Invalid status transition")
 
-        db_reservation.status = ReservationStatus[data.status]
+        db_reservation.status = data.status
         db.commit()
         db.refresh(db_reservation)
 

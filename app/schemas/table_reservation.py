@@ -23,6 +23,7 @@ class OutReservation(BaseModel):
     table_id: str
     table_number: int
     user_id: str
+    user_name: str
     start_time: datetime
     end_time: datetime
     guests_count: int
