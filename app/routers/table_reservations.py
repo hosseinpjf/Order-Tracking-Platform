@@ -54,6 +54,7 @@ def create_reservation(data: CreateReservation, payload = Depends(get_payload), 
         
         new_reservation = TableReservation(
             table_id = data.table_id,
+            table_number = db_table.number,
             user_id = payload["sub"],
             user_name = db_user.name,
             start_time = data.start_time,
@@ -257,6 +258,7 @@ def update_reservation(reservation_id: str, data: UpdateReservation, payload = D
         db_reservation.start_time = new_start_time
         db_reservation.end_time = new_end_time
         db_reservation.table_id = new_table_id
+        db_reservation.table_number = db_table.number
         db_reservation.guests_count = new_guests_count
 
         db.commit()

@@ -5,7 +5,6 @@ from app.schemas.table import OutTable
 from app.schemas.user import OutUser
 
 
-
 class CreateReservation(BaseModel):
     table_id: str
     start_time: datetime
@@ -24,6 +23,7 @@ class OutReservation(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: str
     table_id: str
+    table_number: int
     user_id: str
     start_time: datetime
     end_time: datetime
@@ -35,6 +35,7 @@ class OutFullReservation(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: str
     table_id: str
+    table_number: int
     user_id: str
     start_time: datetime
     end_time: datetime

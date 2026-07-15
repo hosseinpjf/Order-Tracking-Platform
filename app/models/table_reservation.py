@@ -17,7 +17,7 @@ class ReservationStatus(enum.Enum):
 
 ALLOWED_TRANSITIONS_RESERVATION = {
     ReservationStatus.pending: {ReservationStatus.confirmed, ReservationStatus.cancelled, ReservationStatus.rejected},
-    ReservationStatus.confirmed: {ReservationStatus.seated, ReservationStatus.cancelled, ReservationStatus.expired},
+    ReservationStatus.confirmed: {ReservationStatus.seated, ReservationStatus.cancelled},
     ReservationStatus.seated: {ReservationStatus.completed, ReservationStatus.cancelled},
     ReservationStatus.completed: set(),
     ReservationStatus.expired: set(),
@@ -31,6 +31,7 @@ class TableReservation(Base):
 
     id = Column(String, primary_key=True, index=True, default=lambda: uuid.uuid4().hex)
     table_id = Column(String, ForeignKey("tables.id"), nullable=False)
+    table_number = Column(Integer, nullable=False)
     user_id = Column(String, ForeignKey("users.id"), nullable=False)
     user_name = Column(String, nullable=False)
 
