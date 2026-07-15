@@ -10,7 +10,8 @@ from app.middleware.exception_handler import response_handler
 from app.models.table_reservation import TableReservation, ReservationStatus, ALLOWED_TRANSITIONS_RESERVATION
 from app.models.table import Table
 from app.models.user import User
-from app.schemas.table_reservation import CreateReservation, OutReservation, UpdateStatus, UpdateReservation, OutFullReservation
+from app.schemas.table_reservation import CreateReservation, OutReservation, UpdateStatus, UpdateReservation
+from app.schemas.shared_table import OutFullReservation
 
 
 router = APIRouter(prefix="/table-reservation", tags=["Table Reservation"])

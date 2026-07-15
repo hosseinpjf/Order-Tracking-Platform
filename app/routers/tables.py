@@ -4,9 +4,10 @@ from sqlalchemy import func
 from app.db.session import get_db
 from app.services.jwt_bearer import get_payload
 from app.middleware.exception_handler import response_handler
-from app.models.table import Table, TableStatus, TableTags
-from app.schemas.table import CreateTable, OutTable, UpdateTable, OutFullTable
 from app.utils.delete_file import delete_file
+from app.models.table import Table, TableStatus, TableTags
+from app.schemas.table import CreateTable, OutTable, UpdateTable
+from app.schemas.shared_table import OutFullTable
 
 
 router = APIRouter(prefix="/table", tags=["Table"])

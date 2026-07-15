@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field, ConfigDict
 from typing import List
 from app.models.table import TableTags, TableStatus
-from app.schemas.table_reservation import OutReservation
+
 
 class CreateTable(BaseModel):
     number: int = Field(..., gt=0)
@@ -30,13 +30,3 @@ class OutTable(BaseModel):
     status: TableStatus
     tags: List[TableTags]
 
-class OutFullTable(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-    id: str
-    number: int
-    image: str
-    capacity: int
-    location: str
-    status: TableStatus
-    tags: List[TableTags]
-    reservations: OutReservation
