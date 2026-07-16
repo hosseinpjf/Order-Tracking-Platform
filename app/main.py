@@ -20,6 +20,7 @@ from .routers.tables import router as router_tables
 from .routers.table_reservations import router as router_table_reservations
 
 from .jobs.table_reservation import auto_update_reservations
+from .jobs.order_status_history import auto_update_order_status
 
 
 app = FastAPI()
@@ -48,6 +49,7 @@ async def reservation_scheduler():
         try:
             db = SessionLocal()
             auto_update_reservations(db)
+            auto_update_order_status(db)
         except Exception as e:
             print("Scheduler error:", e)
         finally:

@@ -6,12 +6,11 @@ from app.models.table_reservation import TableReservation, ReservationStatus
 def auto_update_reservations(db: Session):
     try:
         now = datetime.now(timezone.utc)
-        print(now)
 
         updated = False
 
         # expire
-        expired_reservations = db.query(TableReservation).filter(
+        expired_reservations = db.query(TableReservation).with_for_update(skip_locked=True).filter(
             TableReservation.status.in_([ReservationStatus.pending, ReservationStatus.confirmed]),
             TableReservation.end_time < now
         ).all()
@@ -21,7 +20,7 @@ def auto_update_reservations(db: Session):
             updated = True
 
         # complete
-        completed_reservations = db.query(TableReservation).filter(
+        completed_reservations = db.query(TableReservation).with_for_update(skip_locked=True).filter(
             TableReservation.status == ReservationStatus.seated,
             TableReservation.end_time < now
         ).all()
