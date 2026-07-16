@@ -7,7 +7,6 @@ from app.db.base import Base
 
 class TableStatus(enum.Enum):
     free = "free"           # آزاد
-    reserved = "reserved"   # رزرو شده
     occupied = "occupied"   # اشغال
     cleaning = "cleaning"   # در حال نظافت
 
