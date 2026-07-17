@@ -45,7 +45,7 @@ class DaysWeek(enum.Enum):
 class SiteInfo(Base):
     __tablename__ = "site_info"
 
-    id = Column(String, primary_key=True, default=1)
+    id = Column(String, primary_key=True, default="1")
 
     name = Column(String(50), nullable=False)
     slogan = Column(MutableList.as_mutable(JSON), default=list)
@@ -65,10 +65,10 @@ class SiteInfo(Base):
 
     table_reservation_time = Column(Integer, default=30)
 
-    hero = Column(JSON, MutableDict.as_mutable(JSON), default=dict)
-    footer = Column(JSON, MutableDict.as_mutable(JSON), default=dict)
-    AboutUs = Column(JSON, MutableDict.as_mutable(JSON), default=dict)
-    ContactUs = Column(JSON, MutableDict.as_mutable(JSON), default=dict)
+    hero = Column(MutableDict.as_mutable(JSON), default=dict)
+    footer = Column(MutableDict.as_mutable(JSON), default=dict)
+    about_us = Column(MutableDict.as_mutable(JSON), default=dict)
+    contact_us = Column(MutableDict.as_mutable(JSON), default=dict)
 
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
