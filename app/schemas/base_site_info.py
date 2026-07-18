@@ -38,9 +38,9 @@ class CreateWorkingHours(BaseModel):
     close_time: time
     is_closed: bool = False
 
-class CreateSetting(BaseModel):
-    capability: SiteInfoSettings
-    enabled: bool
+# class CreateSetting(BaseModel):
+#     capability: SiteInfoSettings
+#     enabled: bool
 
 class CreateSection(BaseModel):
     title: str | None = Field(None, min_length=1)

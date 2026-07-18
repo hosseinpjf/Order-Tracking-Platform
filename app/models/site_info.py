@@ -44,7 +44,7 @@ class DaysWeek(enum.Enum):
 class SiteInfo(Base):
     __tablename__ = "site_info"
 
-    id = Column(String, primary_key=True, default="1")
+    id = Column(String, primary_key=True, unique=True, default="1")
 
     name = Column(String(50), nullable=True)
     slogans = Column(MutableList.as_mutable(JSON), default=list)

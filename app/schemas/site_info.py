@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import List
-from app.schemas.base_site_info import CreateSlogans, CreateLocation, CreatePhone, CreateLink, CreateWorkingHours, CreateSetting, CreateHero, CreateFooter, CreateAboutUs, CreateContactUs
+from app.schemas.base_site_info import CreateSlogans, CreateLocation, CreatePhone, CreateLink, CreateWorkingHours, CreateHero, CreateFooter, CreateAboutUs, CreateContactUs
 
 class CreateSiteInfo(BaseModel):
     name: str | None = Field(None, min_length=1)
@@ -18,7 +18,7 @@ class CreateSiteInfo(BaseModel):
 
     today_suggestions: List[str] | None = None
 
-    settings: List[CreateSetting] | None = None
+    # settings: List[CreateSetting] | None = None
 
     table_reservation_time: int | None = Field(None, gt=0)
     
