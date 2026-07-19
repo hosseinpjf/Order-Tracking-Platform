@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 from datetime import time
 from typing import List
-from app.models.site_info import DaysWeek, SiteInfoSettings
+
 
 class CreateImages(BaseModel):
     url: str = Field(..., pattern=r"^/media/uploads/[A-Za-z0-9_\-./]+\.(jpg|jpeg|png|webp)$")
@@ -10,6 +10,8 @@ class CreateImages(BaseModel):
 class CreateButton(BaseModel):
     text: str = Field(..., min_length=1)
     url: str = Field(..., min_length=1)
+    order: int = Field(..., gt=0)
+    is_visible: bool = True
 
 class CreateSlogans(BaseModel):
     text: str = Field(..., min_length=1)
@@ -32,20 +34,15 @@ class CreateLink(BaseModel):
     order: int = Field(..., gt=0)
     is_visible: bool = True
 
-# class CreateWorkingHours(BaseModel):
-#     day: DaysWeek
-#     open_time: time
-#     close_time: time
-#     is_closed: bool = False
-
-# class CreateSetting(BaseModel):
-#     capability: SiteInfoSettings
-#     enabled: bool
+class CreateTodaySuggestions(BaseModel):
+    product_id: str = Field(..., min_length=1)
+    order: int = Field(..., gt=0)
+    is_visible: bool = True
 
 class CreateSection(BaseModel):
     title: str | None = Field(None, min_length=1)
     subtitle: str | None = Field(None, min_length=1)
-    content: str = Field(..., min_length=1)
+    content: str | None = Field(None, min_length=1)
     images: List[CreateImages] | None = None
     buttons: List[CreateButton] | None = None
 
@@ -57,3 +54,72 @@ class CreateAboutUs(CreateSection): pass
 
 class CreateContactUs(CreateSection): pass
 
+
+
+
+class UpdateImages(BaseModel):
+    id: str
+    url: str | None = Field(None, pattern=r"^/media/uploads/[A-Za-z0-9_\-./]+\.(jpg|jpeg|png|webp)$")
+    position: str | None = Field(None, min_length=1)
+
+class UpdateButton(BaseModel):
+    id: str
+    text: str | None = Field(None, min_length=1)
+    url: str | None = Field(None, min_length=1)
+    order: int | None = Field(None, gt=0)
+    is_visible: bool | None = None
+
+class UpdateSlogans(BaseModel):
+    id: str
+    text: str | None = Field(None, min_length=1)
+    is_visible: bool | None = None
+
+class UpdateLocation(BaseModel):
+    latitude: float | None = Field(None, ge=-90, le=90)
+    longitude: float | None = Field(None, ge=-180, le=180)
+
+class UpdatePhone(BaseModel):
+    id: str
+    title: str | None = Field(None, min_length=1)
+    phone: str | None = Field(None, pattern=r"^09\d{9}$")
+    order: int | None = Field(None, gt=0)
+    is_visible: bool | None = None
+
+class UpdateLink(BaseModel):
+    id: str
+    title: str | None = Field(None, min_length=1)
+    url: str | None = Field(None, min_length=1)
+    icon: str | None = Field(None, min_length=1)
+    order: int | None = Field(None, gt=0)
+    is_visible: bool | None = None
+
+class UpdateTodaySuggestions(BaseModel):
+    id: str
+    product_id: str | None = Field(None, min_length=1)
+    order: int | None = Field(None, gt=0)
+    is_visible: bool | None = None
+
+class UpdateWorkingHours(BaseModel):
+    id: str
+    open_time: time | None = None
+    close_time: time | None = None
+    is_closed: bool | None = None
+
+class UpdateSetting(BaseModel):
+    id: str
+    enabled: bool | None = None
+
+class UpdateSection(BaseModel):
+    title: str | None = Field(None, min_length=1)
+    subtitle: str | None = Field(None, min_length=1)
+    content: str | None = Field(None, min_length=1)
+    images: List[UpdateImages] | None = None
+    buttons: List[UpdateButton] | None = None
+
+class UpdateHero(UpdateSection): pass
+
+class UpdateFooter(UpdateSection): pass
+
+class UpdateAboutUs(UpdateSection): pass
+
+class UpdateContactUs(UpdateSection): pass
