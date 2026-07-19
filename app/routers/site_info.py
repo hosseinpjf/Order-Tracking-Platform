@@ -4,7 +4,7 @@ from sqlalchemy import func
 from sqlalchemy.orm.attributes import flag_modified
 import uuid
 from app.db.session import get_db
-from app.services.jwt_bearer import get_payload
+from app.services.jwt_bearer import get_payload, get_optional_payload
 from app.middleware.exception_handler import response_handler
 from app.models.site_info import SiteInfo, SiteInfoPart
 from app.schemas.site_info import CreateSiteInfo, UpdateSiteInfo
@@ -144,9 +144,12 @@ def update_info(data: UpdateSiteInfo, payload = Depends(get_payload), db: Sessio
 @router.get("/")
 def get_info(
     db: Session = Depends(get_db),
+    payload = Depends(get_optional_payload),
     parts: list[SiteInfoPart] = Query(default=[SiteInfoPart.all])
 ):
     try:
+        is_admin = bool(payload) and payload.get("role") == "admin"
+
         db_site_info = db.query(SiteInfo).first()
         if not db_site_info:
             raise HTTPException(status_code=404, detail="Site info not found")
@@ -165,27 +168,21 @@ def get_info(
                 data_output[part.value] = getattr(db_site_info, part.value)
 
             elif part.value in FIELDS_WITH_LIST_DATA:
-                items = [
-                    item
-                    for item in (getattr(db_site_info, part.value) or [])
-                    if item.get("is_visible", True)
-                ]
+                items = getattr(db_site_info, part.value) or []
+                if not is_admin:
+                    items = [item for item in items if item.get("is_visible", True)]
                 data_output[part.value] = items
 
             elif part.value in FIELDS_WITH_DICT_DATA:
                 section = (getattr(db_site_info, part.value) or {}).copy()
-
-                if "buttons" in section:
-                    section["buttons"] = [
-                        button
-                        for button in section["buttons"]
-                        if button.get("is_visible", True)
-                    ]
+                if not is_admin:
+                    if "buttons" in section:
+                        section["buttons"] = [button for button in section["buttons"] if button.get("is_visible", True)]
                 data_output[part.value] = section
 
         return response_handler(
             status=True,
-            message="Data received successfully",
+            message="Site info get successfully",
             data=data_output,
             status_code=200
         )
@@ -194,24 +191,3 @@ def get_info(
     except Exception:
         raise HTTPException(status_code=500, detail="Site info get failed")
 
-
-
-
-# from app.db.session import SessionLocal
-# from app.models.site_info import SiteInfo
-# def delete_site_info():
-#     db = SessionLocal()
-#     try:
-#         site_info = db.query(SiteInfo).filter(SiteInfo.id == "1").first()
-#         if not site_info:
-#             print("site_info not found")
-#             return
-#         db.delete(site_info)
-#         db.commit()
-#         print("site_info deleted with cascade")
-#     except:
-#         db.rollback()
-#         raise
-#     finally:
-#         db.close()
-# delete_site_info()
