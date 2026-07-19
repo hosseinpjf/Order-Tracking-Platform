@@ -41,6 +41,25 @@ class DaysWeek(enum.Enum):
     thursday = "thursday"
     friday = "friday"
 
+class SiteInfoPart(enum.Enum):
+    all = "all"
+    name = "name"
+    logo = "logo"
+    slogans = "slogans"
+    address = "address"
+    location = "location"
+    phones = "phones"
+    links = "links"
+    working_hours = "working_hours"
+    table_reservation_time = "table_reservation_time"
+    today_suggestions = "today_suggestions"
+    settings = "settings"
+    hero = "hero"
+    footer = "footer"
+    about_us = "about_us"
+    contact_us = "contact_us"
+
+
 class SiteInfo(Base):
     __tablename__ = "site_info"
 

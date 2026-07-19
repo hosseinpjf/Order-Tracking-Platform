@@ -6,7 +6,7 @@ import uuid
 from app.db.session import get_db
 from app.services.jwt_bearer import get_payload
 from app.middleware.exception_handler import response_handler
-from app.models.site_info import SiteInfo
+from app.models.site_info import SiteInfo, SiteInfoPart
 from app.schemas.site_info import CreateSiteInfo, UpdateSiteInfo
 from app.utils.site_info_update import update_list, update_section
 
@@ -139,6 +139,62 @@ def update_info(data: UpdateSiteInfo, payload = Depends(get_payload), db: Sessio
     except Exception:
         db.rollback()
         raise HTTPException(status_code=500, detail="Site info update failed")
+
+
+@router.get("/")
+def get_info(
+    db: Session = Depends(get_db),
+    parts: list[SiteInfoPart] = Query(default=[SiteInfoPart.all])
+):
+    try:
+        db_site_info = db.query(SiteInfo).first()
+        if not db_site_info:
+            raise HTTPException(status_code=404, detail="Site info not found")
+        
+        if SiteInfoPart.all in parts:
+            parts = [
+                *(SiteInfoPart(field) for field in FIELDS_WITH_SIMPLE_DATA),
+                *(SiteInfoPart(field) for field in FIELDS_WITH_LIST_DATA),
+                *(SiteInfoPart(field) for field in FIELDS_WITH_DICT_DATA),
+            ]
+
+        data_output = {}
+        for part in parts:
+
+            if part.value in FIELDS_WITH_SIMPLE_DATA:
+                data_output[part.value] = getattr(db_site_info, part.value)
+
+            elif part.value in FIELDS_WITH_LIST_DATA:
+                items = [
+                    item
+                    for item in (getattr(db_site_info, part.value) or [])
+                    if item.get("is_visible", True)
+                ]
+                data_output[part.value] = items
+
+            elif part.value in FIELDS_WITH_DICT_DATA:
+                section = (getattr(db_site_info, part.value) or {}).copy()
+
+                if "buttons" in section:
+                    section["buttons"] = [
+                        button
+                        for button in section["buttons"]
+                        if button.get("is_visible", True)
+                    ]
+                data_output[part.value] = section
+
+        return response_handler(
+            status=True,
+            message="Data received successfully",
+            data=data_output,
+            status_code=200
+        )
+    except HTTPException as http_error:
+        raise http_error
+    except Exception:
+        raise HTTPException(status_code=500, detail="Site info get failed")
+
+
 
 
 # from app.db.session import SessionLocal
