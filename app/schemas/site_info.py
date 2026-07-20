@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import List
-from app.schemas.base_site_info import CreateSlogans, CreateLocation, CreatePhone, CreateLink, CreateTodaySuggestions, CreateHero, CreateFooter, CreateAboutUs, CreateContactUs, UpdateSlogans, UpdateLocation, UpdatePhone, UpdateLink, UpdateTodaySuggestions, UpdateWorkingHours, UpdateSetting, UpdateHero, UpdateFooter, UpdateAboutUs, UpdateContactUs, DeleteSlogans, DeletePhone, DeleteLink, DeleteTodaySuggestions, DeleteHero, DeleteFooter, DeleteAboutUs, DeleteContactUs
+from app.schemas.base_site_info import CreateSlogans, CreateLocation, CreatePhone, CreateLink, CreateTodaySuggestions, CreateSection, UpdateSlogans, UpdateLocation, UpdatePhone, UpdateLink, UpdateTodaySuggestions, UpdateWorkingHours, UpdateSetting, UpdateSection, DeleteById, DeleteSection
 
 class CreateSiteInfo(BaseModel):
     name: str | None = Field(None, min_length=1)
@@ -18,10 +18,10 @@ class CreateSiteInfo(BaseModel):
 
     table_reservation_time: int | None = Field(None, gt=0)
     
-    hero: CreateHero | None = None
-    footer: CreateFooter | None = None
-    about_us: CreateAboutUs | None = None
-    contact_us: CreateContactUs | None = None
+    hero: CreateSection | None = None
+    footer: CreateSection | None = None
+    about_us: CreateSection | None = None
+    contact_us: CreateSection | None = None
 
 
 
@@ -45,28 +45,28 @@ class UpdateSiteInfo(BaseModel):
 
     table_reservation_time: int | None = Field(None, gt=0)
     
-    hero: UpdateHero | None = None
-    footer: UpdateFooter | None = None
-    about_us: UpdateAboutUs | None = None
-    contact_us: UpdateContactUs | None = None
+    hero: UpdateSection | None = None
+    footer: UpdateSection | None = None
+    about_us: UpdateSection | None = None
+    contact_us: UpdateSection | None = None
 
 
 
 class DeleteSiteInfo(BaseModel):
     name: bool | None = None
-    slogans: List[DeleteSlogans] | None = None
+    slogans: List[DeleteById] | None = None
     logo: bool | None = None
 
     address: bool | None = None
     location: bool | None = None
 
-    phones: List[DeletePhone] | None = None
+    phones: List[DeleteById] | None = None
 
-    links: List[DeleteLink] | None = None
+    links: List[DeleteById] | None = None
 
-    today_suggestions: List[DeleteTodaySuggestions] | None = None
+    today_suggestions: List[DeleteById] | None = None
 
-    hero: DeleteHero | None = None
-    footer: DeleteFooter | None = None
-    about_us: DeleteAboutUs | None = None
-    contact_us: DeleteContactUs | None = None
+    hero: DeleteSection | None = None
+    footer: DeleteSection | None = None
+    about_us: DeleteSection | None = None
+    contact_us: DeleteSection | None = None

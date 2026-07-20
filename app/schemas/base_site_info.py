@@ -46,14 +46,6 @@ class CreateSection(BaseModel):
     images: List[CreateImages] | None = None
     buttons: List[CreateButton] | None = None
 
-class CreateHero(CreateSection): pass
-
-class CreateFooter(CreateSection): pass
-
-class CreateAboutUs(CreateSection): pass
-
-class CreateContactUs(CreateSection): pass
-
 # ---------------------------------------<< Update >>---------------------------------------
 class UpdateImages(BaseModel):
     id: str
@@ -114,38 +106,11 @@ class UpdateSection(BaseModel):
     images: List[UpdateImages] | None = None
     buttons: List[UpdateButton] | None = None
 
-class UpdateHero(UpdateSection): pass
-
-class UpdateFooter(UpdateSection): pass
-
-class UpdateAboutUs(UpdateSection): pass
-
-class UpdateContactUs(UpdateSection): pass
-
 # ---------------------------------------<< Delete >>---------------------------------------
-class DeleteId(BaseModel):
+class DeleteById(BaseModel):
     id: str
 
-class DeleteImages(DeleteId): pass
-
-class DeleteButton(DeleteId): pass
-
-class DeleteSlogans(DeleteId): pass
-
-class DeletePhone(DeleteId): pass
-
-class DeleteLink(DeleteId): pass
-
-class DeleteTodaySuggestions(DeleteId): pass
-
 class DeleteSection(BaseModel):
-    images: List[DeleteImages] | None = None
-    buttons: List[DeleteButton] | None = None
+    images: List[DeleteById] | None = None
+    buttons: List[DeleteById] | None = None
 
-class DeleteHero(DeleteSection): pass
-
-class DeleteFooter(DeleteSection): pass
-
-class DeleteAboutUs(DeleteSection): pass
-
-class DeleteContactUs(DeleteSection): pass
