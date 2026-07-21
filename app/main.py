@@ -3,6 +3,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 import asyncio
+import logging
 
 from .db.database import engine
 from .db.base import Base
@@ -11,6 +12,7 @@ from .config.settings import settings
 from .middleware.exception_handler import http_exception_handler, general_exception_handler, validation_exception_handler
 from .middleware.cors import setup_cors
 from .utils.get_site_info import get_settings
+from .config import logging_config
 
 from .routers.users import router as router_users
 from .routers.devices_tracking import router as router_devices_tracking
@@ -26,6 +28,8 @@ from .core.init_site_info import init_settings, init_working_hours
 from .jobs.table_reservation import auto_update_reservations
 from .jobs.order_status_history import auto_update_order_status
 
+logger = logging.getLogger(__name__)
+
 Base.metadata.create_all(bind=engine)
 
 async def reservation_scheduler():
@@ -40,7 +44,7 @@ async def reservation_scheduler():
                 auto_update_order_status(db)
 
         except Exception:
-            print("Scheduler error")
+            logger.exception("Scheduler error")
         finally:
             db.close()
 
