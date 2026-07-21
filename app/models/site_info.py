@@ -7,30 +7,33 @@ from app.db.base import Base
 
 class SiteInfoSettings(enum.Enum):
     # Order Settings
-    accept_order = "accept_order"                                   # آیا سیستم سفارش را قبول کند یا نه
-    allow_online_payment = "allow_online_payment"                   # فعال/غیرفعال کردن پرداخت آنلاین
-    allow_offline_payment = "allow_offline_payment"                 # فعال/غیرفعال کردن پرداخت حضوری
-    auto_complete_preparing = "auto_complete_preparing"             # آیا سفارش‌های preparing خودکار تغییر وضعیت دهند
+    accept_order = "accept_order"                                               # آیا سیستم سفارش را قبول کند یا نه
+    allow_online_payment = "allow_online_payment"                               # فعال/غیرفعال کردن پرداخت آنلاین
+    allow_offline_payment = "allow_offline_payment"                             # فعال/غیرفعال کردن پرداخت حضوری
+    auto_complete_preparing = "auto_complete_preparing"                         # آیا سفارش‌های preparing خودکار تغییر وضعیت دهند
     # Table Reservation Settings
-    allow_table_reservation = "allow_table_reservation"             # فعال/غیرفعال کردن رزرو میز
-    auto_expire_reservations = "auto_expire_reservations"           # expire خودکار رزروها
-    auto_complete_reservations = "auto_complete_reservations"       # complete خودکار رزروهای seated
-    show_reservation_section = "show_reservation_section"           # نمایش/عدم نمایش بخش رزرو در سایت
+    allow_table_reservation = "allow_table_reservation"                         # فعال/غیرفعال کردن رزرو میز
+    auto_expire_reservations = "auto_expire_reservations"                       # expire خودکار رزروها
+    auto_complete_reservations = "auto_complete_reservations"                   # complete خودکار رزروهای seated
+    # Messages
+    allow_guest_user_messages = "allow_guest_user_messages"                     # اجازه پیام دادن به کاربران مهمان
+    allow_authenticated_user_messages = "allow_authenticated_user_messages"     # اجازه پیام دادن به کاربران احراز هویت شده
     # Content & UI Settings
-    show_today_suggestions = "show_today_suggestions"               # نمایش/عدم نمایش پیشنهادهای امروز
-    show_statistics = "show_statistics"                             # نمایش/عدم نمایش آمار
-    show_gallery = "show_gallery"                                   # نمایش/عدم نمایش گالری
-    show_announcements = "show_announcements"                       # نمایش اطلاعیه‌ها
-    show_banners = "show_banners"                                   # نمایش بنرها
-    show_features = "show_features"                                 # نمایش ویژگی‌ها
-    show_facilities = "show_facilities"                             # نمایش امکانات
-    show_services = "show_services"                                 # نمایش خدمات
-    show_team_members = "show_team_members"                         # نمایش اعضای تیم
-    show_faqs = "show_faqs"                                         # نمایش سوالات متداول
+    show_table_reservation = "show_table_reservation"                           # نمایش/عدم نمایش بخش رزرو میز در سایت
+    show_guest_user_messages = "show_guest_user_messages"                       # نمایش بخش پیام دادن کاربران مهمان در سایت
+    show_authenticated_user_messages = "show_authenticated_user_messages"       # نمایش بخش پیام دادن کاربران احراز هویت شده
+    show_working_hours = "show_working_hours"                                   # نمایش ساعات کاری
+    show_statistics = "show_statistics"                                         # نمایش/عدم نمایش آمار
+    show_gallery = "show_gallery"                                               # نمایش/عدم نمایش گالری
+    show_announcements = "show_announcements"                                   # نمایش اطلاعیه‌ها
+    show_banners = "show_banners"                                               # نمایش بنرها
+    show_features = "show_features"                                             # نمایش ویژگی‌ها
+    show_facilities = "show_facilities"                                         # نمایش امکانات
+    show_services = "show_services"                                             # نمایش خدمات
+    show_team_members = "show_team_members"                                     # نمایش اعضای تیم
+    show_faqs = "show_faqs"                                                     # نمایش سوالات متداول
     # General Settings
-    site_open = "site_open"                                         # آیا سایت باز است یا بسته
-    show_contact_info = "show_contact_info"                         # نمایش/عدم نمایش اطلاعات تماس
-    show_working_hours = "show_working_hours"                       # نمایش ساعات کاری
+    site_open = "site_open"                                                     # آیا سایت باز است یا بسته
 
 class DaysWeek(enum.Enum):
     saturday = "saturday"

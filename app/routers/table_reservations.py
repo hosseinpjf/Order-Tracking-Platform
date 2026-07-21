@@ -12,6 +12,7 @@ from app.models.user import User
 from app.schemas.table_reservation import CreateReservation, OutReservation, UpdateStatus, UpdateReservation
 from app.schemas.shared_table import OutFullReservation
 from app.utils.get_site_info import get_working_hours, get_site_info
+from app.utils.get_site_info import get_settings
 
 
 router = APIRouter(prefix="/table-reservation", tags=["Table Reservation"])
@@ -20,6 +21,10 @@ router = APIRouter(prefix="/table-reservation", tags=["Table Reservation"])
 @router.post("/")
 def create_reservation(data: CreateReservation, payload = Depends(get_payload), db: Session = Depends(get_db)):
     try:
+        db_settings = get_settings(db, ["allow_table_reservation"])
+        if not db_settings["allow_table_reservation"]:
+            raise HTTPException(status_code=400, detail="Allow table reservation disabled")
+
         db_table = db.query(Table).filter(Table.id == data.table_id).with_for_update().first()
         if not db_table:
             raise HTTPException(status_code=404, detail="Table not found")

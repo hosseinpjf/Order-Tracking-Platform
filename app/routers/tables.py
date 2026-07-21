@@ -2,12 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from app.db.session import get_db
-from app.services.jwt_bearer import get_payload
+from app.services.jwt_bearer import get_payload, get_optional_payload
 from app.middleware.exception_handler import response_handler
 from app.utils.delete_file import delete_file
 from app.models.table import Table, TableStatus, TableTags
 from app.schemas.table import CreateTable, OutTable, UpdateTable
 from app.schemas.shared_table import OutFullTable
+from app.utils.get_site_info import get_settings
 
 
 router = APIRouter(prefix="/table", tags=["Table"])
@@ -50,10 +51,17 @@ def create_table(data: CreateTable, payload = Depends(get_payload), db: Session 
 @router.get("/")
 def get_tables(
         db: Session = Depends(get_db),
+        payload = Depends(get_optional_payload),
         tag: TableTags | None = Query(None),
-        status: TableStatus | None = Query(None),
+        status: TableStatus | None = Query(None)
     ):
     try:
+        is_admin = bool(payload) and payload.get("role") == "admin"
+
+        db_settings = get_settings(db, ["show_table_reservation"])
+        if not db_settings["show_table_reservation"] and not is_admin:
+            raise HTTPException(status_code=400, detail="Show table disabled")
+
         db_tables = []
         query = db.query(Table)
         
@@ -84,10 +92,13 @@ def get_tables(
 
 
 @router.get("/{table_id}")
-def get_reservation(table_id: str, payload = Depends(get_payload), db: Session = Depends(get_db)):
+def get_reservation(table_id: str, payload = Depends(get_optional_payload), db: Session = Depends(get_db)):
     try:
-        if payload["role"] != "admin":
-            raise HTTPException(status_code=403, detail="Access denied")
+        is_admin = bool(payload) and payload.get("role") == "admin"
+
+        db_settings = get_settings(db, ["show_table_reservation"])
+        if not db_settings["show_table_reservation"] and not is_admin:
+            raise HTTPException(status_code=400, detail="Show table disabled")
         
         db_table = db.query(Table).filter(Table.id == table_id).first()
         if not db_table:
