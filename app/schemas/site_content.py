@@ -27,6 +27,18 @@ class CreateSiteContent(BaseModel):
     position: str = Field(..., min_length=1)
     is_visible: bool = True
 
+class UpdateSiteContent(BaseModel):
+    title: str | None = Field(None, min_length=1)
+    subtitle: str | None = Field(None, min_length=1)
+    content: dict[str, Any] | list[Any] | None = None
+
+    images: List[CreateImages] | None = None
+    icons: List[CreateImages] | None = None
+    buttons: List[CreateButton] | None = None
+
+    order: int | None = Field(None, gt=0)
+    position: str | None = Field(None, min_length=1)
+    is_visible: bool | None = None
 
 class OutSiteContent(BaseModel):
     model_config = ConfigDict(from_attributes=True)
