@@ -7,7 +7,7 @@ from app.services.jwt_bearer import get_payload, get_optional_payload
 from app.middleware.exception_handler import response_handler
 from app.models.site_content import SiteContent, SiteContentType, SiteContentSort
 from app.schemas.site_content import CreateSiteContent, OutSiteContent, UpdateSiteContent
-from app.utils.delete_file import delete_file, delete_files
+from app.utils.delete_file import delete_files
 from app.utils.get_site_info import get_settings
 
 
@@ -163,4 +163,40 @@ def get_content(
         raise http_error
     except Exception:
         raise HTTPException(status_code=500, detail="Site content get failed")
+
+
+@router.delete("/{content_id}")
+def delete_content(content_id: str, payload = Depends(get_payload), db: Session = Depends(get_db)):
+    try:
+        if payload["role"] != "admin":
+            raise HTTPException(status_code=403, detail="Access denied")
+
+        db_site_content = db.query(SiteContent).filter(SiteContent.id == content_id).first()
+        if not db_site_content:
+            raise HTTPException(status_code=404, detail="Content not found")
+
+        old_files = set()
+
+        for field in ("images", "icons"):
+            if field in db_site_content:
+                old_files.update(item["url"] for item in (getattr(db_site_content, field) or []) if item.get("url"))
+
+        db.delete(db_site_content)
+        db.commit()
+
+        if old_files:
+            delete_files(list(old_files))
+
+        return response_handler(
+            status=True,
+            message="Content deleted successfully",
+            data=None,
+            status_code=200
+        )
+    except HTTPException as http_error:
+        db.rollback()
+        raise http_error
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Site content delete failed")
 
