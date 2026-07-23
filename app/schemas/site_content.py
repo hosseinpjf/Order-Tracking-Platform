@@ -39,6 +39,25 @@ class UpdateSiteContent(BaseModel):
     position: str | None = Field(None, min_length=1)
     is_visible: bool | None = None
 
+class UpdateSiteContentItem(BaseModel):
+    id: str
+
+    title: str | None = Field(None, min_length=1)
+    subtitle: str | None = Field(None, min_length=1)
+    content: dict[str, Any] | list[Any] | None = None
+
+    images: list[CreateImages] | None = None
+    icons: list[CreateImages] | None = None
+    buttons: list[CreateButton] | None = None
+
+    order: int | None = Field(None, gt=0)
+    position: str | None = Field(None, min_length=1)
+    is_visible: bool | None = None
+
+class UpdateSiteContents(BaseModel):
+    contents: list[UpdateSiteContentItem] = Field(..., min_length=1)
+
+
 class OutSiteContent(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: str

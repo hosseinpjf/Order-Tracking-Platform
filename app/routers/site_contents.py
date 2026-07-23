@@ -6,7 +6,7 @@ from app.db.session import get_db
 from app.services.jwt_bearer import get_payload, get_optional_payload
 from app.middleware.exception_handler import response_handler
 from app.models.site_content import SiteContent, SiteContentType, SiteContentSort
-from app.schemas.site_content import CreateSiteContent, OutSiteContent, UpdateSiteContent
+from app.schemas.site_content import CreateSiteContent, OutSiteContent, UpdateSiteContent, UpdateSiteContents
 from app.utils.delete_file import delete_files
 from app.utils.get_site_info import get_settings
 
@@ -99,6 +99,73 @@ def update_content(content_id: str, data: UpdateSiteContent, payload = Depends(g
     except Exception:
         db.rollback()
         raise HTTPException(status_code=500, detail="Site content update failed")
+
+
+@router.patch("/")
+def update_contents(data: UpdateSiteContents, payload = Depends(get_payload), db: Session = Depends(get_db)):
+    try:
+        if payload["role"] != "admin":
+            raise HTTPException(status_code=403, detail="Access denied")
+
+        db_site_contents = db.query(SiteContent).filter(SiteContent.id.in_([item.id for item in data.contents])).all()
+
+        requested_ids_list = [item.id for item in data.contents]
+        requested_ids = set(requested_ids_list)
+        found_ids = {item.id for item in db_site_contents}
+
+        missing_ids = requested_ids - found_ids
+        if missing_ids:
+            raise HTTPException(status_code=404, detail=f"Content(s) not found: {', '.join(sorted(missing_ids))}")
+
+        if len(requested_ids) != len(requested_ids_list):
+            raise HTTPException(status_code=400, detail="Duplicate content ids are not allowed")
+
+        contents_map = {content.id: content for content in db_site_contents}
+
+        old_files = set()
+        new_files = set()
+
+        for item in data.contents:
+
+            db_site_content = contents_map[item.id]
+
+            update_data = item.model_dump(
+                mode="json",
+                exclude={"id"},
+                exclude_unset=True,
+                exclude_none=True,
+            )
+
+            for field in ("images", "icons"):
+                if field in update_data:
+                    old_files.update(item["url"] for item in (getattr(db_site_content, field) or []) if item.get("url"))
+                    new_files.update(item["url"] for item in update_data[field] if item.get("url"))
+
+            for key, value in update_data.items():
+                setattr(db_site_content, key, value)
+
+            for field in ("images", "icons", "buttons", "content"):
+                if field in update_data:
+                    flag_modified(db_site_content, field)
+
+        db.commit()
+
+        delete_files_list = list(old_files - new_files)
+        if delete_files_list:
+            delete_files(delete_files_list)
+
+        return response_handler(
+            status=True,
+            message="Contents updated successfully",
+            data=None,
+            status_code=200,
+        )
+    except HTTPException:
+        db.rollback()
+        raise
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Site contents update failed")
 
 
 @router.get("/")
