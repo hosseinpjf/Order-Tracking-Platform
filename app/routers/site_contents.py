@@ -188,6 +188,54 @@ def get_content(
         raise HTTPException(status_code=500, detail="Site content get failed")
 
 
+@router.get("/{content_id}")
+def get_content_by_id(content_id: str, payload = Depends(get_optional_payload), db: Session = Depends(get_db)):
+    try:
+        is_admin = bool(payload) and payload.get("role") == "admin"
+
+        query = db.query(SiteContent).filter(SiteContent.id == content_id)
+
+        if not is_admin:
+            db_settings = get_settings(db, [
+                "show_statistics",
+                "show_announcements",
+                "show_banners",
+                "show_gallery",
+                "show_facilities",
+                "show_services",
+                "show_features",
+                "show_faqs",
+                "show_team_members",
+            ])
+
+            allowed_types = [
+                content_type_item
+                for content_type_item in SiteContentType
+                if db_settings[f"show_{content_type_item.value}"]
+            ]
+
+            query = query.filter(
+                SiteContent.type.in_(allowed_types),
+                SiteContent.is_visible.is_(True),
+            )
+
+        db_site_content = query.first()
+
+        if not db_site_content:
+            raise HTTPException(status_code=404, detail="Content not found")
+
+        return response_handler(
+            status=True,
+            message="Content get successfully",
+            data=OutSiteContent.model_validate(db_site_content).model_dump(),
+            status_code=200,
+        )
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=500, detail="Site content get failed")
+
+
 @router.delete("/{content_id}")
 def delete_content(content_id: str, payload = Depends(get_payload), db: Session = Depends(get_db)):
     try:
